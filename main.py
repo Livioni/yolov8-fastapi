@@ -219,6 +219,4 @@ async def batch_inference(batch: Batch):
         # Step 5: Logs and return
         logger.info("results: {}", result)
 
-        return json.dumps(return_json)
-    
-
+    return json.dumps(return_json)

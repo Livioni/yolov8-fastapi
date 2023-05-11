@@ -27,7 +27,6 @@ def convertMAT(img_numpy):
     b = img_numpy[:, :, 0]
     g = img_numpy[:, :, 1]
     r = img_numpy[:, :, 2]
-    # 合并通道，形成图片
     img_mat = cv2.merge([b, g, r])
     return img_mat
 

@@ -108,15 +108,12 @@ img = Image.open(BytesIO(response.content))
 plt.imshow(img)
 ```
 
-## Example 3: Batch Inference for Object Detection
+## Example 3: Batch Infer for Object Detection
 
 The following code demonstrates how to detect several image in one request.
 
 ```python
-import requests,json
-from PIL import Image
-from io import BytesIO
-import matplotlib.pyplot as plt
+import requests
 import numpy as np
 import cv2
 
