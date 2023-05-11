@@ -1,17 +1,35 @@
 from PIL import Image
-import io
+import io,cv2
 import pandas as pd
 import numpy as np
 
 from typing import Optional
+from typing import List,Tuple
+from pydantic import BaseModel
 
 from ultralytics import YOLO
 from ultralytics.yolo.utils.plotting import Annotator, colors
 
+class Batch(BaseModel):
+    data: List
+    shape: Tuple
 
 # Initialize the models
 model_sample_model = YOLO("./models/sample_model/yolov8n.pt")
 
+def get_a_batch_of_images(batch: Batch) -> np.ndarray:
+    shape = batch.shape
+    data = batch.data
+    images = np.array(data,dtype=np.uint8).reshape(shape)
+    return images
+
+def convertMAT(img_numpy):
+    b = img_numpy[:, :, 0]
+    g = img_numpy[:, :, 1]
+    r = img_numpy[:, :, 2]
+    # 合并通道，形成图片
+    img_mat = cv2.merge([b, g, r])
+    return img_mat
 
 def get_image_from_bytes(binary_image: bytes) -> Image:
     """Convert image from bytes to PIL RGB format
@@ -52,15 +70,20 @@ def transform_predict_to_df(results: list, labeles_dict: dict) -> pd.DataFrame:
     Returns:
         predict_bbox (pd.DataFrame): A DataFrame containing the bounding box coordinates, confidence scores and class labels.
     """
+    table = {}
+    for index,result in enumerate(results):
     # Transform the Tensor to numpy array
-    predict_bbox = pd.DataFrame(results[0].to("cpu").numpy().boxes.xyxy, columns=['xmin', 'ymin', 'xmax','ymax'])
-    # Add the confidence of the prediction to the DataFrame
-    predict_bbox['confidence'] = results[0].to("cpu").numpy().boxes.conf
-    # Add the class of the prediction to the DataFrame
-    predict_bbox['class'] = (results[0].to("cpu").numpy().boxes.cls).astype(int)
-    # Replace the class number with the class name from the labeles_dict
-    predict_bbox['name'] = predict_bbox["class"].replace(labeles_dict)
-    return predict_bbox
+        predict_bbox = pd.DataFrame(results[0].to("cpu").numpy().boxes.xyxy, columns=['xmin', 'ymin', 'xmax','ymax'])
+        # Add the confidence of the prediction to the DataFrame
+        predict_bbox['confidence'] = results[0].to("cpu").numpy().boxes.conf
+        # Add the class of the prediction to the DataFrame
+        predict_bbox['class'] = (results[0].to("cpu").numpy().boxes.cls).astype(int)
+        # Replace the class number with the class name from the labeles_dict
+        predict_bbox['name'] = predict_bbox["class"].replace(labeles_dict)
+        # Add the image index to the DataFrame
+        table[index] = predict_bbox
+
+    return table
 
 def get_model_predict(model: YOLO, input_image: Image, save: bool = False, image_size: int = 1248, conf: float = 0.5, augment: bool = False) -> pd.DataFrame:
     """
@@ -93,6 +116,23 @@ def get_model_predict(model: YOLO, input_image: Image, save: bool = False, image
     predictions = transform_predict_to_df(predictions, model.model.names)
     return predictions
 
+def get_batch_predict(model: YOLO, input_image: list) -> dict:
+    """
+    Get the predictions of a model on an input image.
+    
+    Args:
+        model (YOLO): The trained YOLO model.
+        input_image (list): list of numpy arrays
+    Returns:
+        predictions: A DataFrame containing the predictions.
+    """
+    # Make predictions
+    predictions = model.predict(input_image)
+
+    # Transform predictions to pandas dataframe
+    predictions = transform_predict_to_df(predictions, model.model.names)
+
+    return predictions
 
 ################################# BBOX Func #####################################
 
@@ -146,5 +186,24 @@ def detect_sample_model(input_image: Image) -> pd.DataFrame:
         image_size=640,
         augment=False,
         conf=0.5,
+    )
+    return predict
+
+def detect_batch_images(input_image: np.ndarray) -> pd.DataFrame:
+    """
+    Predict a batch of iamges from sample_model.
+    Base on YoloV8
+
+    Args:
+        input_image (np.ndarray): The numpy array of  input images.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the object location.
+    """
+    source = [convertMAT(image) for image in input_image] 
+
+    predict = get_batch_predict(
+        model=model_sample_model,
+        input_image=source,
     )
     return predict

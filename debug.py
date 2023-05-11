@@ -4,6 +4,7 @@ import pandas as pd
 from PIL import Image
 from loguru import logger
 import sys
+import uvicorn
 from pydantic import BaseModel
 import numpy as np
 from typing import List,Tuple
@@ -13,6 +14,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
+
 
 from io import BytesIO
 
@@ -218,7 +220,10 @@ async def batch_inference(batch: Batch):
 
         # Step 5: Logs and return
         logger.info("results: {}", result)
-
-        return json.dumps(return_json)
     
+    
+    return json.dumps(return_json)
 
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)
