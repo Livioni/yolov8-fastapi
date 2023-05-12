@@ -7,6 +7,9 @@ import sys
 from pydantic import BaseModel
 import numpy as np
 from typing import List,Tuple
+import uvicorn
+import asyncio
+
 
 from fastapi import FastAPI, File, status
 from fastapi.responses import RedirectResponse
@@ -187,7 +190,7 @@ def img_object_detection_to_img(file: bytes = File(...)):
     return StreamingResponse(content=get_bytes_from_image(final_image), media_type="image/jpeg")
 
 @app.post("/batch_inference/")
-async def batch_inference(batch: Batch):
+def batch_inference(batch: Batch):
     """
     Object Detection from a batch
 
@@ -220,3 +223,6 @@ async def batch_inference(batch: Batch):
         logger.info("results: {}", result)
 
     return json.dumps(return_json)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)
