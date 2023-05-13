@@ -131,3 +131,4 @@ dmypy.json
 vscode/*
 /vscode
 vscode/PythonImportHelper-v2-Completion.json
+.DS_Store
