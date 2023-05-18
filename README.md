@@ -108,7 +108,7 @@ img = Image.open(BytesIO(response.content))
 plt.imshow(img)
 ```
 
-## Example 3: Batch Infer for Object Detection
+## Example 3: Batch Infer for Object Detection from nparray
 
 The following code demonstrates how to detect several image in one request.
 
@@ -136,6 +136,26 @@ data = {
 
 response = requests.post(api_host+type_rq, json=data)
 
+data = response.json()   
+print(data)
+```
+
+## Example 4: Batch Infer from files
+
+This may be faster than example3 because uploading a json-like file is too slow?
+
+```python
+import requests
+
+input_image_name = 'tests/test_image.jpg'
+api_host = 'http://127.0.0.1:8001/'
+type_rq = 'uploadfiles/'
+
+# form a batch
+file_paths = ['tests/test_image.jpg', 'tests/test_image.jpg']
+files = [('files', (open(file, 'rb'))) for file in file_paths]
+
+response = requests.post(api_host+type_rq, files=files)
 data = response.json()   
 print(data)
 ```
