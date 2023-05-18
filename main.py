@@ -11,7 +11,7 @@ import uvicorn
 import asyncio
 
 
-from fastapi import FastAPI, File, status
+from fastapi import FastAPI, File, status, UploadFile
 from fastapi.responses import RedirectResponse
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -223,6 +223,41 @@ def batch_inference(batch: Batch):
         logger.info("results: {}", result)
 
     return json.dumps(return_json)
+
+@app.post("/uploadfiles/")
+async def create_upload_files(files: List[UploadFile] = File(...)):
+    images = None
+    for file in files:
+        contents = await file.read()
+        input_image = get_image_from_bytes(contents)
+        img = np.array(input_image)
+        if images is None:
+            images = np.expand_dims(img, axis=0)
+        else:
+            images = np.concatenate((images, np.expand_dims(img, axis=0)), axis=0)
+        # do something with the contents...
+        await file.close()
+
+    predict = detect_batch_images(images)
+
+    return_json = {}
+
+    for index, result in predict.items():
+        return_json[index] = {}
+        detect_res = result[['name', 'confidence']]
+        objects = detect_res['name'].values
+        return_json[index]['detect_objects_bbox'] = [list(item[0:4]) for item in result.values]
+        return_json[index]['detect_objects_names'] = ', '.join(objects)
+        return_json[index]['confidence'] = [item[4] for item in result.values]
+        
+        result['detect_objects_names'] = ', '.join(objects)
+        result['detect_objects'] = json.loads(detect_res.to_json(orient='records'))
+
+        # Step 5: Logs and return
+        logger.info("results: {}", result)
+
+    return json.dumps(return_json)
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)

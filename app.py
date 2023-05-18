@@ -15,7 +15,7 @@ class Batch(BaseModel):
     shape: Tuple
 
 # Initialize the models
-model_sample_model = YOLO("./models/sample_model/yolov8n.pt")
+model_sample_model = YOLO("./models/sample_model/yolov8x.pt")
 model_sample_model.to("cuda")
 
 def get_a_batch_of_images(batch: Batch) -> np.ndarray:
@@ -58,6 +58,27 @@ def get_bytes_from_image(image: Image) -> bytes:
     image.save(return_image, format='JPEG', quality=85)  # save the image in JPEG format with quality 85
     return_image.seek(0)  # set the pointer to the beginning of the file
     return return_image
+
+def transform_predict_to_df_origin(results: list, labeles_dict: dict) -> pd.DataFrame:
+    """
+    Transform predict from yolov8 (torch.Tensor) to pandas DataFrame.
+
+    Args:
+        results (list): A list containing the predict output from yolov8 in the form of a torch.Tensor.
+        labeles_dict (dict): A dictionary containing the labels names, where the keys are the class ids and the values are the label names.
+        
+    Returns:
+        predict_bbox (pd.DataFrame): A DataFrame containing the bounding box coordinates, confidence scores and class labels.
+    """
+    # Transform the Tensor to numpy array
+    predict_bbox = pd.DataFrame(results[0].to("cpu").numpy().boxes.xyxy, columns=['xmin', 'ymin', 'xmax','ymax'])
+    # Add the confidence of the prediction to the DataFrame
+    predict_bbox['confidence'] = results[0].to("cpu").numpy().boxes.conf
+    # Add the class of the prediction to the DataFrame
+    predict_bbox['class'] = (results[0].to("cpu").numpy().boxes.cls).astype(int)
+    # Replace the class number with the class name from the labeles_dict
+    predict_bbox['name'] = predict_bbox["class"].replace(labeles_dict)
+    return predict_bbox
 
 def transform_predict_to_df(results: list, labeles_dict: dict) -> pd.DataFrame:
     """
@@ -113,7 +134,7 @@ def get_model_predict(model: YOLO, input_image: Image, save: bool = False, image
                         )
     
     # Transform predictions to pandas dataframe
-    predictions = transform_predict_to_df(predictions, model.model.names)
+    predictions = transform_predict_to_df_origin(predictions, model.model.names)
     return predictions
 
 def get_batch_predict(model: YOLO, input_image: list) -> dict:
