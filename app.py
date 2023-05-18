@@ -15,7 +15,7 @@ class Batch(BaseModel):
     shape: Tuple
 
 # Initialize the models
-model_sample_model = YOLO("./models/sample_model/yolov8x.pt")
+model_sample_model = YOLO("./models/sample_model/xbest.pt")
 model_sample_model.to("cuda")
 
 def get_a_batch_of_images(batch: Batch) -> np.ndarray:

@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from PIL import Image
 from loguru import logger
-import sys
+import sys,time
 from pydantic import BaseModel
 import numpy as np
 from typing import List,Tuple
@@ -204,9 +204,11 @@ def batch_inference(batch: Batch):
 
     images = get_a_batch_of_images(batch)
 
+    start = time.time()
     predict = detect_batch_images(images)
+    end = time.time()
 
-    return_json = {}
+    return_json = {'Inference_time': end - start}
 
     for index, result in predict.items():
         return_json[index] = {}
@@ -238,9 +240,11 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
         # do something with the contents...
         await file.close()
 
+    start = time.time()
     predict = detect_batch_images(images)
+    end = time.time()
 
-    return_json = {}
+    return_json = {'Inference_time': end - start}
 
     for index, result in predict.items():
         return_json[index] = {}
