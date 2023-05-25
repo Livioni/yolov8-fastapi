@@ -148,7 +148,7 @@ def get_batch_predict(model: YOLO, input_image: list) -> dict:
         predictions: A DataFrame containing the predictions.
     """
     # Make predictions
-    predictions = model.predict(input_image)
+    predictions = model.predict(input_image,imgsz=1024)
 
     # Transform predictions to pandas dataframe
     predictions = transform_predict_to_df(predictions, model.model.names)
@@ -204,7 +204,7 @@ def detect_sample_model(input_image: Image) -> pd.DataFrame:
         model=model_sample_model,
         input_image=input_image,
         save=False,
-        image_size=640,
+        image_size=(3840,2176),
         augment=False,
         conf=0.5,
     )
