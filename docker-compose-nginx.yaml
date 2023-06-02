@@ -1,6 +1,6 @@
 version: '3'
 services:
-  yolov8_fastapi:
+  yolov8_fastapi1:
     build: .
     restart: "always"
     volumes:
@@ -11,12 +11,148 @@ services:
     expose:
       - "8000"
     deploy:
-      replicas: 3
       resources:
         limits:
           cpus: '2.0'
           memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+  yolov8_fastapi2:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8002"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8002
+
+  yolov8_fastapi3:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8003"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8003
+
+  yolov8_fastapi4:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8004"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8004
+
+  yolov8_fastapi5:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8005
+
+  yolov8_fastapi6:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8006"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8006
+
+  yolov8_fastapi7:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8007"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8007
+
+  yolov8_fastapi8:
+    build: .
+    restart: "always"
+    volumes:
+    - ./:/app
+    working_dir: /app
+    # ports:
+    #   - "8001:8001"
+    expose:
+      - "8008"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8008
+
+
   load_balancer:
     image: nginx:latest
     ports:

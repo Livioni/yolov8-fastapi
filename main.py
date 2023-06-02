@@ -244,8 +244,9 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
    
     _,inference_time = detect_batch_images(images,image_size=(1024,1024))
     end = time.perf_counter()
+    service_time = end - start
 
-    return_json = {'service_time': round(end - start,5),'Inference_time':round(inference_time,5),'prepocess time':round(end - start - inference_time,5)}
+    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess_time':service_time-inference_time}
 
 
     # for index, result in predict.items():
@@ -282,8 +283,9 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
 
     _,inference_time = detect_batch_images(images,image_size=(2176,3840))
     end = time.perf_counter()
+    service_time = end - start
 
-    return_json = {'service_time': round(end - start,5),'Inference_time':round(inference_time,5),'prepocess time':round(end - start - inference_time,5)}
+    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess_time':service_time-inference_time}
 
     # for index, result in predict.items():
     #     return_json[index] = {}

@@ -14,6 +14,8 @@ services:
     volumes:
     - ./:/app
     working_dir: /app
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
     ports:
       - "8001:8001"
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8001
