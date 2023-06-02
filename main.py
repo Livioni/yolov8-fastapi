@@ -23,7 +23,6 @@ from app import get_image_from_bytes
 from app import detect_sample_model
 from app import add_bboxs_on_img
 from app import get_bytes_from_image
-from app import get_a_batch_of_images
 from app import detect_batch_images
 
 ####################################### logger #################################
