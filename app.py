@@ -1,5 +1,5 @@
 from PIL import Image
-import io,cv2
+import io,cv2,time
 import pandas as pd
 import numpy as np
 
@@ -28,7 +28,7 @@ def convertMAT(img_numpy):
     b = img_numpy[:, :, 0]
     g = img_numpy[:, :, 1]
     r = img_numpy[:, :, 2]
-    img_mat = cv2.merge([b, g, r])
+    img_mat = cv2.merge([r,g,b])
     return img_mat
 
 def get_image_from_bytes(binary_image: bytes) -> Image:
@@ -137,7 +137,7 @@ def get_model_predict(model: YOLO, input_image: Image, save: bool = False, image
     predictions = transform_predict_to_df_origin(predictions, model.model.names)
     return predictions
 
-def get_batch_predict(model: YOLO, input_image: list) -> dict:
+def get_batch_predict(model: YOLO, input_image: list,image_size:tuple = (1024,1024) ) -> dict:
     """
     Get the predictions of a model on an input image.
     
@@ -148,12 +148,15 @@ def get_batch_predict(model: YOLO, input_image: list) -> dict:
         predictions: A DataFrame containing the predictions.
     """
     # Make predictions
-    predictions = model.predict(input_image,imgsz=1024)
+    start_time = time.perf_counter()
+    predictions = model.predict(input_image,imgsz=image_size)
+    end_time = time.perf_counter()
+    inference_time = end_time - start_time
 
     # Transform predictions to pandas dataframe
     predictions = transform_predict_to_df(predictions, model.model.names)
 
-    return predictions
+    return predictions,inference_time
 
 ################################# BBOX Func #####################################
 
@@ -204,13 +207,13 @@ def detect_sample_model(input_image: Image) -> pd.DataFrame:
         model=model_sample_model,
         input_image=input_image,
         save=False,
-        image_size=(3840,2176),
+        image_size=(2176,3840),
         augment=False,
         conf=0.5,
     )
     return predict
 
-def detect_batch_images(input_image: np.ndarray) -> pd.DataFrame:
+def detect_batch_images(input_image: np.ndarray, image_size: tuple) -> pd.DataFrame:
     """
     Predict a batch of iamges from sample_model.
     Base on YoloV8
@@ -223,8 +226,10 @@ def detect_batch_images(input_image: np.ndarray) -> pd.DataFrame:
     """
     source = [convertMAT(image) for image in input_image] 
 
-    predict = get_batch_predict(
+    predict,inference_time = get_batch_predict(
         model=model_sample_model,
         input_image=source,
+        image_size=image_size
     )
-    return predict
+    
+    return predict,inference_time

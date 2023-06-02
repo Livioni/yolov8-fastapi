@@ -1,5 +1,5 @@
 ####################################### IMPORT #################################
-import json
+import json,cv2
 import pandas as pd
 from PIL import Image
 from loguru import logger
@@ -90,7 +90,7 @@ async def redirect():
 
 
 @app.get('/healthcheck', status_code=status.HTTP_200_OK)
-def perform_healthcheck():
+async def perform_healthcheck():
     '''
     It basically sends a GET request to the route & hopes to get a "200"
     response code. Failing to return a 200 response code just enables
@@ -137,7 +137,7 @@ def crop_image_by_predict(image: Image, predict: pd.DataFrame(), crop_class_name
 
 
 @app.post("/img_object_detection_to_json")
-def img_object_detection_to_json(file: bytes = File(...)):
+async def img_object_detection_to_json(file: bytes = File(...)):
     """
     Object Detection from an image.
 
@@ -168,7 +168,7 @@ def img_object_detection_to_json(file: bytes = File(...)):
     return result
 
 @app.post("/img_object_detection_to_img")
-def img_object_detection_to_img(file: bytes = File(...)):
+async def img_object_detection_to_img(file: bytes = File(...)):
     """
     Object Detection from an image plot bbox on image
 
@@ -190,7 +190,7 @@ def img_object_detection_to_img(file: bytes = File(...)):
     return StreamingResponse(content=get_bytes_from_image(final_image), media_type="image/jpeg")
 
 @app.post("/batch_inference/")
-def batch_inference(batch: Batch):
+async def batch_inference(batch: Batch):
     """
     Object Detection from a batch
 
@@ -228,6 +228,7 @@ def batch_inference(batch: Batch):
 
 @app.post("/uploadfiles/")
 async def create_upload_files(files: List[UploadFile] = File(...)):
+    start = time.perf_counter()
     images = None
     for file in files:
         contents = await file.read()
@@ -240,28 +241,65 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
         # do something with the contents...
         await file.close()
 
-    start = time.time()
-    predict = detect_batch_images(images)
-    end = time.time()
+   
+    _,inference_time = detect_batch_images(images,image_size=(1024,1024))
+    end = time.perf_counter()
 
-    return_json = {'Inference_time': end - start}
+    return_json = {'service_time': round(end - start,5),'Inference_time':round(inference_time,5),'prepocess time':round(end - start - inference_time,5)}
 
-    for index, result in predict.items():
-        return_json[index] = {}
-        detect_res = result[['name', 'confidence']]
-        objects = detect_res['name'].values
-        return_json[index]['detect_objects_bbox'] = [list(item[0:4]) for item in result.values]
-        return_json[index]['detect_objects_names'] = ', '.join(objects)
-        return_json[index]['confidence'] = [item[4] for item in result.values]
+
+    # for index, result in predict.items():
+    #     return_json[index] = {}
+    #     detect_res = result[['name', 'confidence']]
+    #     objects = detect_res['name'].values
+    #     return_json[index]['detect_objects_bbox'] = [list(item[0:4]) for item in result.values]
+    #     return_json[index]['detect_objects_names'] = ', '.join(objects)
+    #     return_json[index]['confidence'] = [item[4] for item in result.values]
         
-        result['detect_objects_names'] = ', '.join(objects)
-        result['detect_objects'] = json.loads(detect_res.to_json(orient='records'))
+    #     result['detect_objects_names'] = ', '.join(objects)
+    #     result['detect_objects'] = json.loads(detect_res.to_json(orient='records'))
 
-        # Step 5: Logs and return
-        logger.info("results: {}", result)
+    #     # Step 5: Logs and return
+    #     logger.info("results: {}", result)
 
     return json.dumps(return_json)
 
+@app.post("/full/")
+async def create_upload_files(files: List[UploadFile] = File(...)):
+    start = time.perf_counter()
+    images = None
+    for file in files:
+        contents = await file.read()
+        input_image = get_image_from_bytes(contents)
+        img = np.array(input_image)
+        if images is None:
+            images = np.expand_dims(img, axis=0)
+        else:
+            images = np.concatenate((images, np.expand_dims(img, axis=0)), axis=0)
+        # do something with the contents...
+        await file.close()
+
+
+    _,inference_time = detect_batch_images(images,image_size=(2176,3840))
+    end = time.perf_counter()
+
+    return_json = {'service_time': round(end - start,5),'Inference_time':round(inference_time,5),'prepocess time':round(end - start - inference_time,5)}
+
+    # for index, result in predict.items():
+    #     return_json[index] = {}
+    #     detect_res = result[['name', 'confidence']]
+    #     objects = detect_res['name'].values
+    #     return_json[index]['detect_objects_bbox'] = [list(item[0:4]) for item in result.values]
+    #     return_json[index]['detect_objects_names'] = ', '.join(objects)
+    #     return_json[index]['confidence'] = [item[4] for item in result.values]
+        
+    #     result['detect_objects_names'] = ', '.join(objects)
+    #     result['detect_objects'] = json.loads(detect_res.to_json(orient='records'))
+
+    #     # Step 5: Logs and return
+    #     logger.info("results: {}", result)
+
+    return json.dumps(return_json)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
