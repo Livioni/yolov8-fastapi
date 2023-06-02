@@ -303,5 +303,24 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
 
     return json.dumps(return_json)
 
+@app.post("/single_image/")
+async def create_upload_files(files: List[UploadFile] = File(...)):
+    start = time.perf_counter()
+    images = None
+    contents = await files[0].read()
+    input_image = get_image_from_bytes(contents)
+    img = np.array(input_image)
+
+    image_shape = img.shape
+    images = [img]
+    _,inference_time = detect_batch_images(images,image_size=(image_shape[0],image_shape[1]))
+    end = time.perf_counter()
+    service_time = end - start
+
+    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess_time':service_time-inference_time}
+
+    return json.dumps(return_json)
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
