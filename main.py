@@ -189,43 +189,6 @@ async def img_object_detection_to_img(file: bytes = File(...)):
     # return image in bytes format
     return StreamingResponse(content=get_bytes_from_image(final_image), media_type="image/jpeg")
 
-@app.post("/batch_inference/")
-async def batch_inference(batch: Batch):
-    """
-    Object Detection from a batch
-
-    Args:
-        batch (Json):     data: List #the list of images 
-                          shape: Tuple #the images shape    
-    Returns:
-         dict: JSON format containing the Objects Detections.
-    """
-    result={'detect_objects': None}
-
-    images = get_a_batch_of_images(batch)
-
-    start = time.time()
-    predict = detect_batch_images(images)
-    end = time.time()
-
-    return_json = {'Inference_time': end - start}
-
-    for index, result in predict.items():
-        return_json[index] = {}
-        detect_res = result[['name', 'confidence']]
-        objects = detect_res['name'].values
-        return_json[index]['detect_objects_bbox'] = [list(item[0:4]) for item in result.values]
-        return_json[index]['detect_objects_names'] = ', '.join(objects)
-        return_json[index]['confidence'] = [item[4] for item in result.values]
-        
-        result['detect_objects_names'] = ', '.join(objects)
-        result['detect_objects'] = json.loads(detect_res.to_json(orient='records'))
-
-        # Step 5: Logs and return
-        logger.info("results: {}", result)
-
-    return json.dumps(return_json)
-
 @app.post("/uploadfiles/")
 async def create_upload_files(files: List[UploadFile] = File(...)):
     start = time.perf_counter()

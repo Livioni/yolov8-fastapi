@@ -18,12 +18,6 @@ class Batch(BaseModel):
 model_sample_model = YOLO("./models/sample_model/xbest.pt")
 model_sample_model.to("cuda")
 
-def get_a_batch_of_images(batch: Batch) -> np.ndarray:
-    shape = batch.shape
-    data = batch.data
-    images = np.array(data,dtype=np.uint8).reshape(shape)
-    return images
-
 def convertMAT(img_numpy):
     b = img_numpy[:, :, 0]
     g = img_numpy[:, :, 1]
