@@ -246,7 +246,7 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
     end = time.perf_counter()
     service_time = end - start
 
-    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess time':service_time-inference_time}
+    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess_time':service_time-inference_time}
 
 
     # for index, result in predict.items():
@@ -285,7 +285,7 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
     end = time.perf_counter()
     service_time = end - start
 
-    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess time':service_time-inference_time}
+    return_json = {'service_time': service_time,'Inference_time':inference_time,'prepocess_time':service_time-inference_time}
 
     # for index, result in predict.items():
     #     return_json[index] = {}
