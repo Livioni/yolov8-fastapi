@@ -1,4 +1,5 @@
-FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel 
+# FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel 
+FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
 RUN apt update && \
     apt install -y htop libgl1-mesa-glx libglib2.0-0
